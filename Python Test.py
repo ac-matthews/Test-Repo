@@ -1,6 +1,6 @@
 print('-------------')
 print('Hello World')
 print('Goodbye World')
-print('Some new code!')
-print('Some even newer code!')
+print('Some new code')
+print('Some even newer code')
 print('-------------')
