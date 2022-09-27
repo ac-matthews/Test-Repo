@@ -1,4 +1,5 @@
 print('-------------')
-print('hello world')
-print('goodbye world')
+print('Hello World')
+print('Goodbye World')
+print('Some new code!')
 print('-------------')
