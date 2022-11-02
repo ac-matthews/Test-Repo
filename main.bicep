@@ -1,42 +1,17 @@
-param location string = 'westus3'
-param storageAccountName string = 'toylaunch${uniqueString(resourceGroup().id)}'
-param appServicePlanName string = 'toyPlan${uniqueString(resourceGroup().id)}'
-param appServiceAppName string = 'toyApp${uniqueString(resourceGroup().id)}'
+@description('The Azure region into which the resources should be deployed.')
+param location string = 'resourceGroup().location'
 
-@allowed([
-  'nonprod'
-  'prod'
-])
-param environmentType string
+@description('Username for the Virtual Machine.')
+param adminUsername string
 
-var storageAccountSkuName = (environmentType == 'prod') ? 'Standard_GRS' : 'Standard_LRS'
-var appServicePlanSkuName = (environmentType == 'prod') ? 'P2v3' : 'F1'
-
-resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
-  name: storageAccountName
-  location: location
-  sku: {
-    name: storageAccountSkuName
-  }
-  kind: 'StorageV2'
-  properties:{
-    accessTier: 'Hot'
-  } 
-}
-
-resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-  name: appServicePlanName
-  location: location
-  sku: {
-    name: appServicePlanSkuName
-  }
-}
-
-resource appServiceApp 'Microsoft.Web/sites@2022-03-01' = {
-  name: appServiceAppName
-  location: location
-  properties: {
-    serverFarmId: appServicePlan.id
-    httpsOnly: true
+@description('Password for the Virtual Machine.')
+@secure()
+param adminPassword string
+module core 'modules/core.bicep' = {
+  name: 'core'
+  params: {
+    adminPassword: adminUsername
+    adminUsername: adminPassword
+    location: location 
   }
 }
