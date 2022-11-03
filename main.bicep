@@ -4,7 +4,7 @@ param location string = resourceGroup().location
 param subscriptionId string = subscription().subscriptionId
 param kvResourceGroup string = resourceGroup().name
 
-var kvName = 'CoreVaultQualExercise104'
+param kvName string
 
 resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: kvName
