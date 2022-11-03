@@ -1,17 +1,22 @@
 @description('The Azure region into which the resources should be deployed.')
-param location string = 'resourceGroup().location'
+param location string = resourceGroup().location
 
-@description('Username for the Virtual Machine.')
-param adminUsername string
+param subscriptionId string = subscription().subscriptionId
+param kvResourceGroup string = resourceGroup().name
 
-@description('Password for the Virtual Machine.')
-@secure()
-param adminPassword string
+var kvName = 'CoreVaultQualExercise104'
+
+resource kv 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  name: kvName
+  scope: resourceGroup(subscriptionId, kvResourceGroup )
+}
+
 module core 'modules/core.bicep' = {
   name: 'core'
   params: {
-    adminPassword: adminUsername
-    adminUsername: adminPassword
+    adminUsername: kv.getSecret('username')
+    adminPassword: kv.getSecret('password')
     location: location 
   }
 }
+

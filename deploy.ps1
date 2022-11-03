@@ -3,7 +3,9 @@ $rgname = $rg.ResourceGroupName
 $location = $rg.Location
 Set-AzDefault -ResourceGroupName $rgname
 
-$password = $TokenSet = @{
+$testcred = 'Hellobye12345!'
+
+$randomgen = $TokenSet = @{
     U = [Char[]]'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     L = [Char[]]'abcdefghijklmnopqrstuvwxyz'
     N = [Char[]]'0123456789'
@@ -20,13 +22,19 @@ $StringSet = $Upper + $Lower + $Number + $Special
 (Get-Random -Count 15 -InputObject $StringSet) -join ''
 
 New-AzKeyVault `
-  -VaultName CoreVault124578 `
+  -VaultName CoreVaultQualExercise104 `
   -resourceGroupName $rgname `
   -Location $location `
   -EnabledForTemplateDeployment
-$secretvalue = ConvertTo-SecureString "hVFkk965BuUv" -AsPlainText -Force
-$secret = Set-AzKeyVaultSecret -VaultName "CoreVault124578" -Name $password -SecretValue $secretvalue
+$secretvalue = ConvertTo-SecureString $testcred -AsPlainText -Force
+$secret = Set-AzKeyVaultSecret -VaultName "CoreVaultQualExercise104" -Name 'username' -SecretValue $secretvalue
+$secretvalue = ConvertTo-SecureString $testcred -AsPlainText -Force
+$secret = Set-AzKeyVaultSecret -VaultName "CoreVaultQualExercise104" -Name 'password' -SecretValue $secretvalue
 
-Write-Output $password
+$username = Get-AzKeyVaultSecret -VaultName "CoreVaultQualExercise104" -Name "username" -AsPlainText
+$password = Get-AzKeyVaultSecret -VaultName "CoreVaultQualExercise104" -Name "password" -AsPlainText
 
-# New-AzResourceGroupDeployment -TemplateFile main.bicep
+Write-Output 'CoreVM username =' $username
+Write-Output 'CoreVM password =' $password
+
+New-AzResourceGroupDeployment -TemplateFile main.bicep
