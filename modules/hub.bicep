@@ -7,6 +7,7 @@ var subnet2Name = 'AppgwSubnet'
 var subnet3name = 'AzureFirewallSubnet'
 var subnet4name = 'AzureBastionSubnet'
 var bastionName = 'bastion-hub1'
+var firewallName = 'firewall-hub1'
 var bastionpipname = 'bastionpip'
 var firewallpipname = 'firewallpip'
 var appgatewaypipname = 'appgateway'
@@ -92,6 +93,26 @@ resource firewallpip 'Microsoft.Network/publicIPAddresses@2022-01-01' = {
     name: 'Standard'
   }
 } 
+
+resource firewall 'Microsoft.Network/azureFirewalls@2022-05-01' = {
+  name: firewallName
+  location: location
+  properties: {
+    ipConfigurations: [
+      {
+        name: 'fw-ipconfig'
+        properties: {
+          subnet: {
+            id: virtualNetwork.properties.subnets[2].id
+          }
+          publicIPAddress: {
+            id: firewallpip.id
+          }
+        }
+      }
+    ]
+  }
+}
 
 resource appgatewaypip 'Microsoft.Network/publicIPAddresses@2022-01-01' = {
   name:  appgatewaypipname

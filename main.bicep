@@ -20,3 +20,9 @@ module core 'modules/core.bicep' = {
   }
 }
 
+module hub 'modules/hub.bicep' = {
+  name: 'hub'
+  params: {
+    location: location
+  }
+}
