@@ -34,9 +34,19 @@ module dev 'modules/dev1.bicep' = {
   }
 }
 
-module prod 'modules/dev1.bicep' = {
+module prod 'modules/prod1.bicep' = {
   name: 'prod'
   params: {
     location: location
+  }
+}
+
+module peerings 'modules/peerings.bicep' = {
+  name: 'peerings'
+  params: {
+    coreID: core.outputs.coreID
+    hubID: hub.outputs.hubID
+    devID: dev.outputs.devID
+    prodID: prod.outputs.prodID
   }
 }

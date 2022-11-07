@@ -158,3 +158,5 @@ resource hubgatewaypip 'Microsoft.Network/publicIPAddresses@2022-01-01' = {
 //     ]
 // }
 // }
+
+output hubID string = virtualNetwork.id

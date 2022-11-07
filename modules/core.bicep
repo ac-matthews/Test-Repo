@@ -132,3 +132,5 @@ resource vmAntiMalware 'Microsoft.Compute/virtualMachines/extensions@2022-08-01'
     protectedSettings: null
   }
 }
+
+output coreID string = virtualNetwork.id

@@ -3,7 +3,7 @@ $rgname = $rg.ResourceGroupName
 $location = $rg.Location
 Set-AzDefault -ResourceGroupName $rgname
 
-$randomgen = $TokenSet = @{
+$TokenSet = @{
     U = [Char[]]'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     L = [Char[]]'abcdefghijklmnopqrstuvwxyz'
     N = [Char[]]'0123456789'
@@ -47,10 +47,10 @@ $secret = Set-AzKeyVaultSecret -VaultName $kvName -Name 'sqlpassword2' -SecretVa
 
 $username = Get-AzKeyVaultSecret -VaultName $kvName -Name "username" -AsPlainText
 $password = Get-AzKeyVaultSecret -VaultName $kvName -Name "password" -AsPlainText
-$sqlusernamedev = Get-AzKeyVaultSecret -VaultName $kvName -Name "sqlusernamedev"
-$sqlpassworddev = Get-AzKeyVaultSecret -VaultName $kvName -Name "sqlpassworddev"
-$sqlusernameprod = Get-AzKeyVaultSecret -VaultName $kvName -Name "sqlusernameprod"
-$sqlpasswordprod = Get-AzKeyVaultSecret -VaultName $kvName -Name "sqlpasswordprod"
+$sqlusernamedev = Get-AzKeyVaultSecret -VaultName $kvName -Name "sqluser1" -AsPlainText
+$sqlpassworddev = Get-AzKeyVaultSecret -VaultName $kvName -Name "sqlpassword1" -AsPlainText
+$sqlusernameprod = Get-AzKeyVaultSecret -VaultName $kvName -Name "sqluser2" -AsPlainText
+$sqlpasswordprod = Get-AzKeyVaultSecret -VaultName $kvName -Name "sqlpassword2" -AsPlainText
 
 Write-Output 'CoreVM username =' $username
 Write-Output 'CoreVM password =' $password
