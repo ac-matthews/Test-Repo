@@ -26,3 +26,17 @@ module hub 'modules/hub.bicep' = {
     location: location
   }
 }
+
+module dev 'modules/dev1.bicep' = {
+  name: 'dev'
+  params: {
+    location: location
+  }
+}
+
+module prod 'modules/dev1.bicep' = {
+  name: 'prod'
+  params: {
+    location: location
+  }
+}

@@ -6,6 +6,7 @@ var subnet1Name = 'GatewaySubnet'
 var subnet2Name = 'AppgwSubnet'
 var subnet3name = 'AzureFirewallSubnet'
 var subnet4name = 'AzureBastionSubnet'
+// var hubGatewayName = 'gateway-hub1'
 var bastionName = 'bastion-hub1'
 var firewallName = 'firewall-hub1'
 var bastionpipname = 'bastionpip'
@@ -135,3 +136,25 @@ resource hubgatewaypip 'Microsoft.Network/publicIPAddresses@2022-01-01' = {
     name: 'Standard'
   }
 } 
+
+// resource virtualNetworkGateway 'Microsoft.Network/virtualNetworkGateways@2021-02-01' = {
+//   name: hubGatewayName
+//   location: location
+//   properties: {
+//     gatewayType: 'Vpn'
+//     ipConfigurations: [
+//       {
+//         name: 'default'
+//         properties: {
+//           privateIPAllocationMethod: 'Dynamic'
+//           subnet: {
+//             id: virtualNetwork.properties.subnets[0].id
+//           }
+//           publicIPAddress: {
+//             id: hubgatewaypip.id
+//           }
+//         }
+//       }
+//     ]
+// }
+// }
