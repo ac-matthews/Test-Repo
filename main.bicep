@@ -31,6 +31,8 @@ module dev 'modules/dev1.bicep' = {
   name: 'dev'
   params: {
     location: location
+    SQLadminUsername: kv.getSecret('sqluser1')
+    SQLadminPassword: kv.getSecret('sqlpassword1')
   }
 }
 
@@ -38,6 +40,8 @@ module prod 'modules/prod1.bicep' = {
   name: 'prod'
   params: {
     location: location
+    SQLadminUsername: kv.getSecret('sqluser2')
+    SQLadminPassword: kv.getSecret('sqlpassword2')
   }
 }
 

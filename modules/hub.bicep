@@ -9,6 +9,7 @@ var subnet4name = 'AzureBastionSubnet'
 // var hubGatewayName = 'gateway-hub1'
 var bastionName = 'bastion-hub1'
 var firewallName = 'firewall-hub1'
+var appgatewayName = 'appgw-hub1'
 var bastionpipname = 'bastionpip'
 var firewallpipname = 'firewallpip'
 var appgatewaypipname = 'appgateway'
@@ -125,6 +126,101 @@ resource appgatewaypip 'Microsoft.Network/publicIPAddresses@2022-01-01' = {
     name: 'Standard'
   }
 } 
+
+resource appgateway 'Microsoft.Network/applicationGateways@2021-05-01' = {
+  name: appgatewayName
+  location: location
+  properties: {
+    sku: {
+      name: 'Standard_v2'
+      tier: 'Standard_v2'
+    }
+    gatewayIPConfigurations: [
+      {
+        name: 'appGatewayIpConfig'
+        properties: {
+          subnet: {
+            id: virtualNetwork.properties.subnets[1].id
+          }
+        }
+      }
+    ]
+    frontendIPConfigurations: [
+      {
+        name: 'appGwPublicFrontendIp'
+        properties: {
+          privateIPAllocationMethod: 'Dynamic'
+          publicIPAddress: {
+            id: appgatewaypip.id
+          }
+        }
+      }
+    ]
+    frontendPorts: [
+      {
+        name: 'port_80'
+        properties: {
+          port: 80
+        }
+      }
+    ]
+    backendAddressPools: [
+      {
+        name: 'myBackendPool'
+        properties: {}
+      }
+    ]
+    backendHttpSettingsCollection: [
+      {
+        name: 'myHTTPSetting'
+        properties: {
+          port: 80
+          protocol: 'Http'
+          cookieBasedAffinity: 'Disabled'
+          pickHostNameFromBackendAddress: false
+          requestTimeout: 20
+        }
+      }
+    ]
+    httpListeners: [
+      {
+        name: 'myListener'
+        properties: {
+          frontendIPConfiguration: {
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', appgatewayName, 'appGwPublicFrontendIp')
+          }
+          frontendPort: {
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', appgatewayName, 'port_80')
+          }
+          protocol: 'Http'
+          requireServerNameIndication: false
+        }
+      }
+    ]
+    requestRoutingRules: [
+      {
+        name: 'myRoutingRule'
+        properties: {
+          ruleType: 'Basic'
+          httpListener: {
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', appgatewayName, 'myListener')
+          }
+          backendAddressPool: {
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', appgatewayName, 'myBackendPool')
+          }
+          backendHttpSettings: {
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appgatewayName, 'myHTTPSetting')
+          }
+        }
+      }
+    ]
+    enableHttp2: false
+    autoscaleConfiguration: {
+      minCapacity: 0
+      maxCapacity: 10
+    }
+  }
+}
 
 resource hubgatewaypip 'Microsoft.Network/publicIPAddresses@2022-01-01' = {
   name:  hubgatewaypipname
