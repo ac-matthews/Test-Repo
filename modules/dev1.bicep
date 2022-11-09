@@ -11,16 +11,17 @@ param SQLadminPassword string
 
 param sqlServerName string = 'sql-dev-${uniqueString(resourceGroup().id)}'
 param appServicePlanName string = 'app-plan-dev1-${uniqueString(resourceGroup().id)}'
-param linuxFxVersion string = 'node|14-lts'
+param appServiceName string = 'helloworlddev${uniqueString(resourceGroup().id)}'
+param linuxFxVersion string = 'DOTNETCORE|6.0'
 
 var sqlDatabaseName = 'db-dev1'
 var virtualNetworkName = 'vnet-dev1'
 var subnet1Name = 'appServicePlanDev'
 var subnet2Name = 'sqlDatabaseDev'
-var privateEndpoint1Name = 'privEndpointSQLdev'
-var privateEndpoint2Name = 'privEndpointAppdev'
-var nsg1name = 'nsg1'
-var nsg2name = 'nsg2'
+var privateEndpoint1Name = 'privEndpointAppdev'
+var privateEndpoint2Name = 'privEndpointSQLdev'
+var nsg1name = 'nsg1dev'
+var nsg2name = 'nsg2dev'
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
   name: virtualNetworkName
@@ -64,7 +65,7 @@ resource networkSecurityGroup2 'Microsoft.Network/networkSecurityGroups@2022-05-
   location: location
 }
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: appServicePlanName
   location: location
   properties: {
@@ -75,8 +76,9 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
   }
   kind: 'linux'
 }
-resource appService 'Microsoft.Web/sites@2020-06-01' = {
-  name: 'helloWorld'
+
+resource appService 'Microsoft.Web/sites@2021-03-01' = {
+  name: appServiceName
   location: location
   properties: {
     serverFarmId: appServicePlan.id
@@ -85,16 +87,18 @@ resource appService 'Microsoft.Web/sites@2020-06-01' = {
     }
   }
 }
-resource srcControls 'Microsoft.Web/sites/sourcecontrols@2021-01-01' = {
+
+resource srcControls 'Microsoft.Web/sites/sourcecontrols@2021-03-01' = {
   name: '${appService.name}/web'
   properties: {
-    repoUrl: 'https://github.com/azure-samples/nodejs-docs-hello-world'
+    repoUrl: 'https://github.com/Azure-Samples/dotnetcore-docs-hello-world'
     branch: 'master'
+    isManualIntegration: true
   }
 }
 
-resource privateEndpoint2 'Microsoft.Network/privateEndpoints@2022-05-01'= {
-  name: privateEndpoint2Name
+resource privateEndpoint1 'Microsoft.Network/privateEndpoints@2022-05-01'= {
+  name: privateEndpoint1Name
   location: location
   properties: {
     subnet: {
@@ -104,9 +108,9 @@ resource privateEndpoint2 'Microsoft.Network/privateEndpoints@2022-05-01'= {
       {
         name: privateEndpoint2Name
         properties: {
-          privateLinkServiceId: appServicePlan.id
+          privateLinkServiceId: appService.id
           groupIds: [
-            'appPlan'
+            'sites'
           ]
         }
       }
@@ -133,8 +137,8 @@ resource database 'Microsoft.Sql/servers/databases@2021-11-01' = {
   }
 }
 
-resource privateEndpoint1 'Microsoft.Network/privateEndpoints@2022-05-01'= {
-  name: privateEndpoint1Name
+resource privateEndpoint2 'Microsoft.Network/privateEndpoints@2022-05-01'= {
+  name: privateEndpoint2Name
   location: location
   properties: {
     subnet: {
@@ -142,7 +146,7 @@ resource privateEndpoint1 'Microsoft.Network/privateEndpoints@2022-05-01'= {
     }
     privateLinkServiceConnections: [
       {
-        name: privateEndpoint1Name
+        name: privateEndpoint2Name
         properties: {
           privateLinkServiceId: sqlServer.id
           groupIds: [

@@ -42,6 +42,7 @@ module prod 'modules/prod1.bicep' = {
     location: location
     SQLadminUsername: kv.getSecret('sqluser2')
     SQLadminPassword: kv.getSecret('sqlpassword2')
+    logAnalyticsID: logAnalytics.outputs.logAnalyticsID
   }
 }
 
@@ -52,5 +53,20 @@ module peerings 'modules/peerings.bicep' = {
     hubID: hub.outputs.hubID
     devID: dev.outputs.devID
     prodID: prod.outputs.prodID
+  }
+}
+
+module logAnalytics 'modules/loganalytics.bicep' = {
+  name: 'logAnalytics'
+  params: {
+    location: location
+  }
+}
+
+module routes 'modules/routes.bicep' = {
+  name: 'routes'
+  params: {
+    location: location
+    firewallIP: hub.outputs.firewallIP
   }
 }
