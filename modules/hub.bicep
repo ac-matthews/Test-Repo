@@ -1,5 +1,8 @@
 @description('Location to deploy the resources to')
 param location string = resourceGroup().location
+param prodAppServiceHostName string
+param logAnalyticsID string
+param storageAccountID string
 
 var virtualNetworkName = 'vnet-hub1'
 var subnet1Name = 'GatewaySubnet'
@@ -13,6 +16,7 @@ var bastionpipname = 'bastionpip'
 var firewallpipname = 'firewallpip'
 var appgatewaypipname = 'appgateway'
 var hubgatewaypipname = 'hubgatewaypip'
+var firewallPrivateIP = '10.10.3.4'
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
   name: virtualNetworkName
@@ -99,6 +103,36 @@ resource firewall 'Microsoft.Network/azureFirewalls@2022-05-01' = {
   name: firewallName
   location: location
   properties: {
+    networkRuleCollections: [
+      {
+        name: 'trafficRule'
+        properties: {
+          action: {
+            type: 'Allow'
+          }
+          priority: 100
+          rules: [
+            {
+              destinationAddresses: [
+                '*'
+              ]
+              destinationPorts: [
+                '*'
+              ]
+              protocols: [
+                'Any'
+              ]
+              sourceAddresses: [
+                '*'
+              ]
+            }
+          ]
+        }
+      }
+    ]
+    hubIPAddresses: {
+      privateIPAddress: firewallPrivateIP
+    }
     ipConfigurations: [
       {
         name: 'fw-ipconfig'
@@ -112,6 +146,28 @@ resource firewall 'Microsoft.Network/azureFirewalls@2022-05-01' = {
         }
       }
     ]
+  }
+}
+
+resource firewallDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: 'firewallDiagnostics'
+  scope: firewall
+  properties: {
+    logs: [
+      {
+        category: null
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+    storageAccountId: storageAccountID
+    workspaceId: logAnalyticsID
   }
 }
 
@@ -166,7 +222,13 @@ resource appgateway 'Microsoft.Network/applicationGateways@2021-05-01' = {
     backendAddressPools: [
       {
         name: 'myBackendPool'
-        properties: {}
+        properties: {
+          backendAddresses: [
+            {
+              fqdn: prodAppServiceHostName
+            }
+          ]
+        }
       }
     ]
     backendHttpSettingsCollection: [
@@ -233,4 +295,4 @@ resource hubgatewaypip 'Microsoft.Network/publicIPAddresses@2022-01-01' = {
 } 
 
 output hubID string = virtualNetwork.id
-output firewallIP string = firewall.properties.ipConfigurations[0].properties.privateIPAddress
+output firewallPrivateIP string = firewallPrivateIP

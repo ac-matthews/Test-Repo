@@ -13,6 +13,7 @@ param sqlServerName string = 'sql-dev-${uniqueString(resourceGroup().id)}'
 param appServicePlanName string = 'app-plan-dev1-${uniqueString(resourceGroup().id)}'
 param appServiceName string = 'helloworlddev${uniqueString(resourceGroup().id)}'
 param linuxFxVersion string = 'DOTNETCORE|6.0'
+param routeTableID string
 
 var sqlDatabaseName = 'db-dev1'
 var virtualNetworkName = 'vnet-dev1'
@@ -36,6 +37,9 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
       {
         name: subnet1Name
         properties: {
+          routeTable: {
+            id: routeTableID
+          }
           addressPrefix: '10.30.1.0/24'
           networkSecurityGroup: {
             id: networkSecurityGroup1.id
@@ -45,6 +49,9 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
       {
         name: subnet2Name
         properties: {
+          routeTable: {
+            id: routeTableID
+          }
           addressPrefix: '10.30.2.0/24'
           networkSecurityGroup: {
             id: networkSecurityGroup2.id
@@ -159,3 +166,5 @@ resource privateEndpoint2 'Microsoft.Network/privateEndpoints@2022-05-01'= {
 }
 
 output devID string = virtualNetwork.id
+output devAppPE string = privateEndpoint1.name
+output devSqlPE string = privateEndpoint2.name

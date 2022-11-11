@@ -15,6 +15,7 @@ param appServicePlanName string = 'app-plan-prod1-${uniqueString(resourceGroup()
 param appServiceName string = 'helloworldprod${uniqueString(resourceGroup().id)}'
 param linuxFxVersion string = 'DOTNETCORE|6.0'
 param logAnalyticsID string
+param routeTableID string
 
 var sqlDatabaseName = 'db-prod1'
 var virtualNetworkName = 'vnet-prod1'
@@ -43,6 +44,9 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
       {
         name: subnet1Name
         properties: {
+          routeTable: {
+            id: routeTableID
+          }
           addressPrefix: '10.31.1.0/24'
           networkSecurityGroup: {
             id: networkSecurityGroup1.id
@@ -52,6 +56,9 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
       {
         name: subnet2Name
         properties: {
+          routeTable: {
+            id: routeTableID
+          }
           addressPrefix: '10.31.2.0/24'
           networkSecurityGroup: {
             id: networkSecurityGroup2.id
@@ -61,6 +68,9 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
       {
         name: subnet3Name
         properties: {
+          routeTable: {
+            id: routeTableID
+          }
           addressPrefix: '10.31.3.0/24'
           networkSecurityGroup: {
             id: networkSecurityGroup3.id
@@ -104,6 +114,20 @@ resource appService 'Microsoft.Web/sites@2021-03-01' = {
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
+      appSettings: [
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: appInsights.properties.InstrumentationKey
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: appInsights.properties.ConnectionString
+        }
+        {
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~2'
+        }
+      ]
       linuxFxVersion: linuxFxVersion
     }
   }
@@ -142,11 +166,7 @@ resource privateEndpoint1 'Microsoft.Network/privateEndpoints@2022-05-01'= {
 resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: appInsightsName
   location: location
-  kind: 'string'
-  tags: {
-    displayName: 'AppInsightsDev'
-    ProjectName: appServiceName
-  }
+  kind: 'web'
   properties: {
     Application_Type: 'web'
     WorkspaceResourceId: logAnalyticsID
@@ -226,4 +246,24 @@ resource privateEndpoint3 'Microsoft.Network/privateEndpoints@2022-05-01'= {
   }
 }
 
+resource SQLaudit 'Microsoft.Sql/servers/auditingSettings@2021-11-01' = {
+  name: 'default'
+  parent: sqlServer
+  properties: {
+    auditActionsAndGroups: [
+      'SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP'
+      'BATCH_COMPLETED_GROUP'
+      'FAILED_DATABASE_AUTHENTICATION_GROUP'
+    ]
+    state: 'Enabled'
+    storageEndpoint: storageAccount.properties.primaryEndpoints.blob
+    storageAccountAccessKey: listkeys(storageAccount.id, storageAccount.apiVersion).keys[0].value
+  }
+}
+
 output prodID string = virtualNetwork.id
+output prodAppServiceHostName string = appService.properties.defaultHostName
+output storageAccountID string = storageAccount.id
+output prodAppPE string = privateEndpoint1.name
+output prodSqlPE string = privateEndpoint2.name
+output prodStoragePE string = privateEndpoint3.name

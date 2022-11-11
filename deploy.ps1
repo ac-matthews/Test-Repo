@@ -60,3 +60,16 @@ Write-Output 'SQL prod username =' $sqlusernameprod
 Write-Output 'SQL prod password =' $sqlpasswordprod
 
 New-AzResourceGroupDeployment -TemplateFile main.bicep -kvname "$keyvaultName"
+
+Get-AzRecoveryServicesVault `
+    -Name "coreRecoveryVault" | Set-AzRecoveryServicesVaultContext
+
+$backupcontainer = Get-AzRecoveryServicesBackupContainer `
+    -ContainerType "AzureVM" `
+    -FriendlyName "vmcoredc1"
+
+$item = Get-AzRecoveryServicesBackupItem `
+    -Container $backupcontainer `
+    -WorkloadType "AzureVM"
+
+Backup-AzRecoveryServicesBackupItem -Item $item

@@ -1,15 +1,24 @@
-@description('The Azure region into which the resources should be deployed.')
-param location string = resourceGroup().location
 
-param firewallIP string
+param location string = resourceGroup().location
+param firewallPrivateIP string
 
 var routeTableName = 'Exercise-Route-Table'
-var routeToFirewallName = 'routeToFirewall'
 var CoreToFirewallRouteName = 'CoreToFirewall'
+var AllToFirewallRouteName = 'AllToFirewall'
 
 resource routeTable 'Microsoft.Network/routeTables@2022-05-01' = {
   name: routeTableName
   location: location
+}
+
+resource AllToFirewall 'Microsoft.Network/routeTables/routes@2022-05-01' = {
+  name: AllToFirewallRouteName
+  parent: routeTable
+  properties: {
+    nextHopType: 'VirtualAppliance'
+    nextHopIpAddress: firewallPrivateIP
+    addressPrefix: '0.0.0.0/0'
+  }
 }
 
 resource CoreToFirewall 'Microsoft.Network/routeTables/routes@2022-05-01' = {
@@ -17,17 +26,9 @@ resource CoreToFirewall 'Microsoft.Network/routeTables/routes@2022-05-01' = {
   parent: routeTable
   properties: {
     nextHopType: 'VirtualAppliance'
-    nextHopIpAddress: firewallIP
+    nextHopIpAddress: firewallPrivateIP
     addressPrefix: '10.20.0.0/16'
   }
 }
 
-resource routeToFirewall 'Microsoft.Network/routeTables/routes@2022-05-01' = {
-  name: routeToFirewallName
-  parent: routeTable
-  properties: {
-    nextHopType: 'VirtualAppliance'
-    nextHopIpAddress: firewallIP
-    addressPrefix: '0.0.0.0/0'
-  }
-}
+output routeTableID string = routeTable.id
